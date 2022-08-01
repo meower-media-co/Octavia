@@ -96,6 +96,7 @@ class Octavia:
                     if len(responses) != 0:
                         resp = responses[0]["resp"]
                         resp = resp.replace("[username]", msg["val"]["u"])
+                        resp = resp.replace("[size]", str(len(db)))
                         print(resp)
                         cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": f"@{msg['val']['u']} {resp}"}})
                     else:
@@ -127,12 +128,9 @@ if __name__ == "__main__":
     cl = CloudLink(BOT_DEBUG_MODE)
     db = TinyDB(BOT_DB_LOCATION)
     bot = Octavia()
-    # Instanciates a CloudLink object into memory.
     
     cl.callback("on_packet", on_packet)
     cl.callback("on_error", on_error)
     cl.callback("on_connect", on_connect)
-    # Create callbacks to functions.
 
     cl.client(ip=SERVER_ADDRESS)
-    # Start CloudLink and run as a client.

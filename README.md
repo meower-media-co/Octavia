@@ -11,9 +11,9 @@ If Octavia doesn't know how to respond to a question, she will ask you to input 
 
 Adding "[username]" to a response will add the origin username.
 
-> I have stored [count] responses in my brain!
+> I have stored [size] responses in my brain!
 
-Adding [count] will return the total count of all responses in TinyDB.
+Adding [size] will return the total count of all responses in TinyDB.
 
 ## Setup
 Before creating your own bot using Octavia's source code, you will need to create an account dedicated to your bot. Simply create an account from any Meower client and store the username and password of the bot in main.py.

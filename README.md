@@ -20,6 +20,7 @@ Before creating your own bot using Octavia's source code, you will need to creat
 
 To run your bot, simply use
 > python3 main.py
+> 
 and Octavia will connect to Meower and start listening for requests.
 
 ## Future improvements

@@ -19,8 +19,7 @@ Adding [size] will return the total count of all responses in TinyDB.
 Before creating your own bot using Octavia's source code, you will need to create an account dedicated to your bot. Simply create an account from any Meower client and store the username and password of the bot in main.py.
 
 To run your bot, simply use
-> python3 main.py
-> 
+`python3 main.py`
 and Octavia will connect to Meower and start listening for requests.
 
 ## Future improvements

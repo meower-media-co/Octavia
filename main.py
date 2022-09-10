@@ -1,136 +1,88 @@
-from cloudlink import CloudLink
-from tinydb import TinyDB, Query
-import json
-import requests
-from time import sleep
+from cloudlink import Cloudlink
 
 # ======================================================================
-# OCTAVIA BOT v0.1.0 - Developed by MikeDEV
-# Based upon the Octavia! AI Chat Bot v0.3a by Jun-Dragon on Scratch.
+#
+# Octavia - The not-so friendly chatbot for Meower - Created by MikeDEV
+# Based upon Octavia! Chatbot on Scratch.
 #
 # This software is Licensed using the MEOW License.
 #
+# Requires cloudlink >= 0.1.8.4
+#
 # ======================================================================
 
-BOT_USERNAME = ""
+BOT_USERNAME = "Octavia"
 BOT_PASSWORD = ""
 BOT_DEBUG_MODE = True
-BOT_DB_LOCATION = "./db.json"
-API_ADDRESS = "https://api.meower.org/"
-SERVER_ADDRESS = "wss://server.meower.org/"
+SERVER_ADDRESS = "ws://127.0.0.1:3000/"
+BOT_STARTUP_MESSAGE = "Hi! I'm Octavia. Simply @ me and I'll be happy to reply!"
+LINK_DEFAULT_ROOM = "org.meower.Meower"
 
 # ======================================================================
 
-class bootup: # Cloudlink setup stuff.
-    def __init__(self):
-        pass
-    
-    def bootscript1(self):
-        cl.sendPacket({"cmd": "direct", "val": {"cmd": "authpswd", "val": {"username": str(BOT_USERNAME), "pswd": str(BOT_PASSWORD)}}, "listener": "auth"})
-        
-    def bootscript2(self):
-        cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": "Hi! I'm Octavia. Simply @ me and I'll be happy to reply!"}, "listener": "startup"})
-        
-    def bootscript3(self):
-        print("Octavia is booted up and running!")
-
 class Octavia:
-    def __init__(self):
-        self.state = 0
-        self.context = {}
-        self.bootup = bootup()
-    
-    def checkCmdKeys(self, checkKeys, msg):
-        checkOK = True
-        for key in checkKeys:
-            if not key in msg:
-                checkOK = False
-        return checkOK
-    
-    def startup(self, msg): # Bot's initialization script.
-        self.codecheck = ["init", "auth", "startup"]
-        self.cmdstate = [ # Shitty switch-case
-            self.bootup.bootscript1,
-            self.bootup.bootscript2,
-            self.bootup.bootscript3
-        ]
-        
-        if self.checkCmdKeys(["cmd", "val", "listener"], msg):
-            if msg["cmd"] == "statuscode":
-                if msg["listener"] == self.codecheck[self.state]:
-                    if msg["val"]== cl.codes["OK"]:
-                        self.cmdstate[self.state]()
-                        self.state += 1
-                    else:
-                        print(f"Error at state {self.state}, got code {msg['val']}")
-                        exit()
-    
-    def run(self, msg={}): # Bot main thread, handles booting the bot.
-        if self.state in range(0, 3):
-            self.startup(msg)
-        else:
-            self.main(msg)
-    
-    def add_new_msg(self, question, response):
-        db.insert({"msg": question, "resp": response})
-    
-    def main(self, msg={}): # Shove your bot's main code here.
-        if self.checkCmdKeys(["cmd", "val"], msg) and self.checkCmdKeys(["type", "post_origin", "p", "u"], msg["val"]):
-            print(f"{msg['val']['u']} says: {msg['val']['p']}")
-            msg_tmp = msg["val"]["p"]
-            msg_tmp = msg_tmp.split(" ")
-            
-            #print(msg_tmp[0]) # Select first item in the list
-            #print(msg_tmp[1:]) # Select all items after the first item
-            #print(msg_tmp)
-           
-            if msg_tmp[0].lower() == ("@" + BOT_USERNAME.lower()):
-                queryMsg = " ".join(msg_tmp[1:]).lower()
-                print(queryMsg)
-                print("bot mentioned")
-                
-                if not msg["val"]["u"] in self.context:
-                    Response = Query()
-                    responses = db.search(Response.msg == queryMsg)
-                    
-                    if len(responses) != 0:
-                        resp = responses[0]["resp"]
-                        resp = resp.replace("[username]", msg["val"]["u"])
-                        resp = resp.replace("[size]", str(len(db)))
-                        print(resp)
-                        cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": f"@{msg['val']['u']} {resp}"}})
-                    else:
-                        print("no valid response present, creating new context")
-                        self.context[msg["val"]["u"]] = queryMsg
-                        cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": f"@{msg['val']['u']} I'm not sure how to respond to that yet. You can help me out by @'ing me with a response, or just tell me \"nevermind\"."}})
-                else:
-                    if "nevermind" == queryMsg:
-                        cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": f"@{msg['val']['u']} Got it, I'll ignore further messages for now. Feel free to ask me anything by @'ing me!"}})
-                    else:
-                        db.insert({"msg": self.context[msg["val"]["u"]], "resp": queryMsg})
-                        cl.sendPacket({"cmd": "direct", "val": {"cmd": "post_home", "val": f"@{msg['val']['u']} Got it, I'll respond with {queryMsg} if I get asked that question in the future. Feel free to ask me anything by @'ing me!"}})
-                    del self.context[msg["val"]["u"]]
-                #sleep(1)
-                
-def on_connect():
-    cl.sendPacket({"cmd": "direct", "val": {"cmd": "ip", "val": requests.get(API_ADDRESS + "ip").text}})
-    cl.sendPacket({"cmd": "direct", "val": {"cmd": "type", "val": "js"}})
-    cl.sendPacket({"cmd": "direct", "val": "meower", "listener": "init"})
-    
-def on_error(error):
-    print(f"{error}")
+    def __init__(self, cloudlink):
+        # To use callbacks, you will need to initialize your callbacks class with Cloudlink. This is required.
+        self.cloudlink = cloudlink
+        self.supporter = cloudlink.supporter
+        self.log = cloudlink.supporter.log
+        self.bot_ready = False
 
-def on_packet(message):
-    message = json.loads(message)
-    bot.run(message)
+    def on_connect(self): # Called when the client is connected to the server.
+        self.log(f"{BOT_USERNAME} is now connected to the server!", True)
+        self.cloudlink.setUsername("Octavia")
+
+    def on_close(self, close_status_code, close_msg): # Called when the client is disconnected from the server.
+        self.log(f"{BOT_USERNAME} is no longer connected!", True)
+
+    def on_error(self, error): # Called when the client encounters an exception.
+        self.log(f"An error has occurred: {error}", True)
+
+    def on_statuscode(self, code:str, message:any): # Called when a packet is received with the statuscode command.
+        if "listener" in message:
+            if message["listener"] == "username_set":
+                self.log(f"{BOT_USERNAME}'s client object is {self.cloudlink.myClientObject}", True)
+                self.log(f"Linking {BOT_USERNAME} to room {LINK_DEFAULT_ROOM}, please wait...", True)
+                self.cloudlink.linkToRooms(LINK_DEFAULT_ROOM, "link_check")
+            
+            if message["listener"] == "link_check":
+                self.log(f"{BOT_USERNAME} is now linked to {LINK_DEFAULT_ROOM}, now authenticating the bot...", True)
+                self.cloudlink.sendCustom(cmd="authpswd", message={"username": str(BOT_USERNAME), "pswd": str(BOT_PASSWORD)}, listener="auth_bot")
+            
+            if message["listener"] == "auth_bot":
+                if message["code"] == self.supporter.codes["OK"]:
+                    self.log(BOT_USERNAME, "is now authenticated, and is ready to accept commands!", True)
+                    self.bot_ready = True
+                    self.cloudlink.sendCustom(cmd="gmsg", message=BOT_STARTUP_MESSAGE)
+                else:
+                    self.log(f"{BOT_USERNAME} failed to authenticate! Error code {message['code']}", True)
+                    self.log(f"{BOT_USERNAME} is now disconnecting from the server due to failed authentication...", True)
+                    self.cloudlink.stop()
+    
+    def on_gmsg(self, message:str): # Called when a packet is received with the gmsg command.
+        pass
+
+    def on_ulist(self, userlist:any):
+        #self.log(userlist, True)
+        pass
 
 if __name__ == "__main__":
-    cl = CloudLink(BOT_DEBUG_MODE)
-    db = TinyDB(BOT_DB_LOCATION)
-    bot = Octavia()
-    
-    cl.callback("on_packet", on_packet)
-    cl.callback("on_error", on_error)
-    cl.callback("on_connect", on_connect)
+    # Initialize Cloudlink. You will only need to initialize one instance of the main cloudlink module.
+    cl = Cloudlink()
 
-    cl.client(ip=SERVER_ADDRESS)
+    # Create a new client object. This supports initializing many clients at once.
+    client = cl.client(logs=BOT_DEBUG_MODE)
+
+    # Create callbacks. You can only initialize callbacks after you have initialized a cloudlink client object.
+    bot = Octavia(client)
+
+    # Bind callbacks
+    client.callback(client.on_connect, bot.on_connect)
+    client.callback(client.on_close, bot.on_close)
+    client.callback(client.on_error, bot.on_error)
+    client.callback(client.on_statuscode, bot.on_statuscode)
+    client.callback(client.on_gmsg, bot.on_gmsg)
+    client.callback(client.on_ulist, bot.on_ulist)
+
+    # Connect to the server and run the bot.
+    client.run(ip=SERVER_ADDRESS)

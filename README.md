@@ -40,4 +40,4 @@ and Octavia will connect to Meower and start listening for requests.
 * Add per-message custom PFPs to show Octavia's expressions. *(Will not be implemented until Meower B6)*
 
 ## License
-Octavia is licensed using Meower's [MEOW License.](https://github.com/meower-media-co/Octavia/blob/main/LICENSE) You are completely free to use this source code in any way, shape, or form, with or without credit, for commerical or personal use. However, absolutely no patent use is permitted.
+Octavia is licensed using Meower's [MEOW License.](https://github.com/meower-media-co/Octavia/blob/main/LICENSE) You are completely free to use this source code in any way, shape, or form, with or without credit, for commerical or personal use. You are also free to change, remove, or keep this license. **Absolutely no patent use is permitted.**
